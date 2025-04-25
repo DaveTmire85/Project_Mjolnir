@@ -1,4 +1,5 @@
 from parser.base_parser import BaseParser
+from utils.text_cleaner import TextCleaner
 
 class FeatsParser(BaseParser):
     def parse(self):
@@ -15,30 +16,35 @@ class FeatsParser(BaseParser):
     def extract_feat(self, block_text):
         lines = block_text.split("\n")
         if len(lines) < 2:
-            return None
+            return None  # Too little information
 
+        # Initialize empty feat
         feat = {
-            'name': lines[0].strip(),
+            'name': None,
             'type': None,
             'prerequisites': None,
             'benefit': None,
             'normal': None,
             'special': None,
-            'source': None
+            'source': None  # Optional field
         }
 
+        feat['name'] = lines[0].strip()
+
         for line in lines[1:]:
-            if "Type" in line:
-                feat['type'] = line.split(":", 1)[-1].strip()
-            elif "Prerequisite" in line:
-                feat['prerequisites'] = line.split(":", 1)[-1].strip()
-            elif "Benefit" in line:
-                feat['benefit'] = line.split(":", 1)[-1].strip()
-            elif "Normal" in line:
-                feat['normal'] = line.split(":", 1)[-1].strip()
-            elif "Special" in line:
-                feat['special'] = line.split(":", 1)[-1].strip()
-            elif "Source" in line:
-                feat['source'] = line.split(":", 1)[-1].strip()
+            clean_line = TextCleaner.clean_text(line)
+            if "Type:" in clean_line:
+                feat['type'] = clean_line.split(":", 1)[-1].strip()
+            elif "Prerequisite" in clean_line:
+                feat['prerequisites'] = clean_line.split(":", 1)[-1].strip()
+            elif "Benefit" in clean_line:
+                feat['benefit'] = clean_line.split(":", 1)[-1].strip()
+            elif "Normal" in clean_line:
+                feat['normal'] = clean_line.split(":", 1)[-1].strip()
+            elif "Special" in clean_line:
+                feat['special'] = clean_line.split(":", 1)[-1].strip()
+            elif "Source" in clean_line:
+                feat['source'] = clean_line.split(":", 1)[-1].strip()
 
         return feat
+s
