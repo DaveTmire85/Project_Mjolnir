@@ -1,51 +1,73 @@
 # INSTALLATION GUIDE: Project Mjölnir
 
-## Step 1: Clone or Copy the Repository
+---
+
+## 1. Clone or Copy the Repository
 
 If cloning via Git:
+
 ```bash
-git clone https://github.com/DaveTmire85/Mjolnir.git
+git clone https://github.com/DaveTmire85/Project_Mjolnir.git
 ```
 
 If manually copying:
 - Ensure full directory structure is preserved.
 
-## Step 2: Install Python Dependencies
-Install required Python libraries:
+## 2. Install Python Requirements
+
+Use pip to install the necessary Python library:
 
 ```bash
 pip install python-docx
 ```
 
-## Step 3: Install LibreOffice
-LibreOffice is needed to convert .doc files into .docx:
+## 3. Install LibreOffice
 
-Download: https://www.libreoffice.org/download/download/
+LibreOffice is needed for .doc to .docx conversion.
 
-Ensure the soffice command is available in your system PATH.
+Download here: [LibreOffice Download](https://www.libreoffice.org/download/download/)
 
-Test by running:
+Ensure soffice is available in your system PATH.
+
+Test installation:
 
 ```bash
 soffice --version
 ```
 
-If you get a version number, you're good.
+If you see a version number, you're good to go.
 
-## Step 4: Initialize the Database
-No action needed!
-On first run, Mjölnir will automatically create mjolnir.db and load the schema from /db/schema.sql.
+## 4. (Optional) Install a SQLite GUI Browser
 
-## Ready to Run!
-🔥 You can now start parsing documents with:
+For inspecting and verifying your database:
+
+[DB Browser for SQLite](https://sqlitebrowser.org/)
+
+Example (on Linux):
 
 ```bash
-python mjolnir.py <path_to_your_docx_files>
+sudo apt install sqlitebrowser
 ```
 
-## Troubleshooting
-If you get a "no module named docx" error:
-- Run `pip install python-docx`
+## 5. Initialize the Database
 
-If .doc to .docx conversion fails:
-- Check LibreOffice installation.
+Nothing manual required!
+
+On first run, Mjölnir automatically:
+- Creates `/db/mjolnir.db`
+- Initializes the database using `/db/schema.sql`
+
+## 6. First Run
+
+Prepare a test folder with .doc or .docx files.
+
+Run Mjölnir:
+
+```bash
+python mjolnir.py path/to/your/docx/files/
+```
+
+Check:
+- `/db/mjolnir.db` for inserted data
+- `/logs/mjolnir.log` for parsing details
+
