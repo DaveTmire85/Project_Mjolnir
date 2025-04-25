@@ -42,6 +42,28 @@ python mjolnir.py path/to/your/docx/files/
 
 Check `/db/mjolnir.db` for parsed content.
 
+## Data Source Philosophy
+
+Project Mjölnir is specifically designed to process structured `.docx` index files derived from D&D 3.5e source material.
+
+- **Why .docx?**
+  - Parsing directly from official PDFs is notoriously unreliable due to inconsistent layouts, broken tables, and OCR artifacts.
+  - `.docx` indexes provide a plaintext-like structure that allows for accurate, scalable data extraction.
+  - This choice ensures the database remains clean, normalized, and relational — without needing fragile, error-prone parsing hacks.
+
+- **Origin of Indexes:**
+  - The `.docx` indexes were originally collected from community archives no longer reliably available.
+  - These documents are tailored and semi-structured — meaning Mjölnir's parsers are optimized specifically for this format.
+  
+- **Sustainability:**
+  - Future versions of Mjölnir will remain tuned to ingest properly formatted `.docx` files.
+  - Community tools may later be developed to convert other materials into compatible `.docx` format if needed.
+  
+- **Transparency:**
+  - Mjölnir is not designed to parse full proprietary PDFs or infringe copyright; it operates only on derived index materials.
+
+---
+
 ## Requirements
 
 - Python 3.8+
