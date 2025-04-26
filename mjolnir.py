@@ -1,7 +1,7 @@
 import sys
 import os
 from db.db_manager import DBManager
-from utils.text_cleaner import TextCleaner
+from utils.detector_helper import load_text_for_detection
 from utils.detector import detect_entity
 from parser.deities_parser import DeitiesParser
 from parser.feats_parser import FeatsParser
@@ -46,7 +46,7 @@ class Mjolnir:
         return collected
 
     def select_parser(self, file_path):
-        text_list = TextCleaner.load_text(file_path)
+        text_list = load_text_for_detection(file_path)
         entity = detect_entity(text_list)
 
         if entity == "deities":

@@ -1,60 +1,38 @@
 from parser.base_parser import BaseParser
 from utils.text_cleaner import TextCleaner
+import docx
 
 class DeitiesParser(BaseParser):
 
-    FIELD_KEYWORDS = {
-        'pantheon': 'Pantheon:',
-        'alignment': 'Alignment:',
-        'rank': 'Rank:',
-        'portfolio': 'Portfolio:',
-        'domains': 'Domains:',
-        'favored_weapon': 'Favored Weapon:',
-        'symbol': 'Symbol:'
-    }
-
     def parse(self):
-        text_list = self.load_text()
-        blocks = self.split_blocks(text_list)
+        records = []
+        doc = docx.Document(self.file_path)
 
-        for block in blocks:
-            deity = self.extract_deity(block)
-            if deity:
-                self.data.append(deity)
+        for table in doc.tables:
+            for row in table.rows:
+                cells = [TextCleaner.clean_text(cell.text) for cell in row.cells]
+                
+                # Safety: Skip header rows (look for keyword "Pantheon" or "Align" or similar)
+                if len(cells) >= 9 and cells[2].lower() != "pantheon" and cells[3].lower() != "align":
+                    deity = self.extract_deity_from_cells(cells)
+                    if deity:
+                        records.append(deity)
 
-        return {'table': 'deities', 'records': self.data}
+        return {'table': 'deities', 'records': records}
 
-    def extract_deity(self, block_text):
-        lines = block_text.split("\n")
-        lines = [TextCleaner.clean_text(line) for line in lines if line.strip()]
-
-        if len(lines) < 2:
+    def extract_deity_from_cells(self, cells):
+        try:
+            deity = {
+                'name': cells[0],
+                'source': cells[1],
+                'pantheon': cells[2],
+                'alignment': cells[3],
+                'rank': cells[4],
+                'portfolio': cells[5],
+                'domains': cells[6],
+                'favored_weapon': cells[7],
+                'symbol': cells[8]
+            }
+            return deity
+        except IndexError:
             return None
-
-        deity = {
-            'name': lines[0].strip(),
-            'source': None,
-            'pantheon': None,
-            'alignment': None,
-            'rank': None,
-            'portfolio': None,
-            'domains': None,
-            'favored_weapon': None,
-            'symbol': None
-        }
-
-        # Second line is often the Source (in parentheses)
-        if "(" in lines[1] and ")" in lines[1]:
-            deity['source'] = lines[1].strip()
-            field_start_index = 2
-        else:
-            field_start_index = 1
-
-        for line in lines[field_start_index:]:
-            for key, keyword in self.FIELD_KEYWORDS.items():
-                if line.lower().startswith(keyword.lower()):
-                    value = line.split(":", 1)[-1].strip()
-                    deity[key] = value
-                    break
-
-        return deity
