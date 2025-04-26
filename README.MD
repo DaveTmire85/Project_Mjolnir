@@ -1,83 +1,122 @@
-# Project Mjölnir: D&D 3.5e Data Parser and Database Builder
-
-**Purpose:**  
-Forge a fully relational, modular database from D&D 3.5e index `.docx` files, preparing for future VTT integration.
+# Project Mjölnir
+A modular, cross-platform D&D 3.5e parser and database builder, designed to forge structured game data from sourcebook indexes into a fully relational SQLite backend for future VTT integration.
 
 ---
 
 ## Features
 
-- Converts `.doc` → `.docx` automatically using LibreOffice.
-- Modular parser system (deities, feats, spells, monsters, classes, races, templates).
-- Inserts parsed data into a normalized SQLite database.
-- Structured logs and error handling.
-- Designed for full cross-platform compatibility (Windows, MacOS, Linux).
-- Future extension hooks (data validation, rule automation, JSON export).
+- Accepts `.docx` files directly (no `.doc` conversion required)
+- Modular parser system:
+  - Deities
+  - Feats
+  - Spells
+  - Items
+  - Races
+- Normalizes data into a structured SQLite database (`mjolnir.db`)
+- Organized output directories:
+  - `/logs/` — logging parsing operations and errors
+  - `/converted/` — (legacy, currently unused)
+  - `/parsed_output/` — optional JSON dumps
+- Lightweight dependency stack (Python + python-docx only)
+- Cross-platform compatibility (Windows, MacOS, Linux)
+- Future-proof architecture for VTT engine integration
+- Designed for stability, modularity, and raw speed
 
 ---
 
-## Core Directory Structure
+## Directory Layout
 
-| Folder | Purpose |
-|:---|:---|
-| `/converter/` | Document format conversions (.doc → .docx) |
-| `/parser/` | Modular parsers for each data type |
-| `/db/` | Database schema and interaction modules |
-| `/utils/` | Detection, cleaning, helper scripts |
-| `/logs/` | Output logs and error reports |
-| `/converted/` | Converted `.docx` outputs |
-| `/parsed_output/` | Optional JSON exports for sanity checking |
-
----
-
-## Quick Start
-
-1. Install the requirements (see [INSTALL.md](INSTALL.md)).
-2. Prepare a folder with `.doc` or `.docx` index files.
-3. Run Mjölnir:
-
-```bash
-python mjolnir.py path/to/your/docx/files/
 ```
-
-Check `/db/mjolnir.db` for parsed content.
-
-## Data Source Philosophy
-
-Project Mjölnir is specifically designed to process structured `.docx` index files derived from D&D 3.5e source material.
-
-- **Why .docx?**
-  - Parsing directly from official PDFs is notoriously unreliable due to inconsistent layouts, broken tables, and OCR artifacts.
-  - `.docx` indexes provide a plaintext-like structure that allows for accurate, scalable data extraction.
-  - This choice ensures the database remains clean, normalized, and relational — without needing fragile, error-prone parsing hacks.
-
-- **Origin of Indexes:**
-  - The `.docx` indexes were originally collected from community archives no longer reliably available.
-  - These documents are tailored and semi-structured — meaning Mjölnir's parsers are optimized specifically for this format.
-  
-- **Sustainability:**
-  - Future versions of Mjölnir will remain tuned to ingest properly formatted `.docx` files.
-  - Community tools may later be developed to convert other materials into compatible `.docx` format if needed.
-  
-- **Transparency:**
-  - Mjölnir is not designed to parse full proprietary PDFs or infringe copyright; it operates only on derived index materials.
+Mjolnir/
+├── config/
+│   └── settings.py
+├── converter/
+│   └── (currently unused)
+├── db/
+│   ├── db_manager.py
+│   └── schema.sql
+├── parser/
+│   ├── base_parser.py
+│   ├── deities_parser.py
+│   ├── feats_parser.py
+│   ├── spells_parser.py
+│   ├── items_parser.py
+│   └── races_parser.py
+├── utils/
+│   ├── detector.py
+│   └── text_cleaner.py
+├── ingest/
+│   └── (your sourcebook .docx files go here)
+├── logs/
+├── converted/
+├── parsed_output/
+├── mjolnir.py
+├── README.md
+├── INSTALL.md
+├── RUN_FIRST.md
+└── LICENSE
+```
 
 ---
 
 ## Requirements
 
-- Python 3.8+
-- LibreOffice (with soffice command available)
+- Python 3.8 or newer
 - Python libraries:
-  - python-docx
+  - `python-docx`
 
-(Optional: Install SQLiteBrowser if you want a GUI to inspect the database.)
+---
+
+## Installation
+
+```bash
+pip install python-docx
+```
+
+## Running Mjölnir
+
+Place your .docx source indexes into the /ingest/ folder.
+
+Run Mjölnir with:
+
+```bash
+python mjolnir.py ingest/
+```
+
+Check /logs/mjolnir.log for parsing results and any issues.
+
+Inspect your database at /db/mjolnir.db (SQLite format).
+
+You can view the database easily using tools like DB Browser for SQLite.
+
+## Supported Data Types
+
+| Entity Type | Status |
+|-------------|--------|
+| Deities | ✅ Done |
+| Feats | ✅ Done |
+| Spells | ✅ Done |
+| Items | ✅ Done |
+| Races | ✅ Done |
+| Classes (Base/Prestige) | 🔨 In Progress |
+| Monsters (NPCs/Creatures) | 🔨 In Progress |
+| Templates | 🔨 In Progress |
+
+## Current Development Roadmap
+
+- Add classes_parser.py to handle class tables and spellcasting levels.
+- Add monsters_parser.py to handle full creature statblocks.
+- Add templates_parser.py to handle LA/CR adjustments and overlays.
+- Improve field parsing for complex nested fields (e.g., spell-like abilities, monster special attacks).
+- Expand relational database cross-linking (classes → spells, races → abilities).
 
 ## Author
 
-- Name: David Tofflemire
-- GitHub: DaveTmire85
-- Email: davetmire85@gmail.com
+Name: David Tofflemire
+
+GitHub: DaveTmire85
+
+Email: davetmire85@gmail.com
 
 Forged in the fires of determination. 🔨
 

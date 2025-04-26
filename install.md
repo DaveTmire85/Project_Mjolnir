@@ -1,52 +1,36 @@
 # INSTALLATION GUIDE: Project Mjölnir
 
-## Step 1: Clone or Copy the Repository
+## Step 1: Install Python 3.8 or newer
 
-If cloning via Git:
+Download and install Python if not already installed:  
+https://www.python.org/downloads/
 
-```bash
-git clone https://github.com/DaveTmire85/Project_Mjolnir.git
-```
+---
 
-If manually copying:
-- Ensure full directory structure is preserved.
+## Step 2: Install Python Libraries
 
-## Step 2: Install Python Dependencies
-Install required Python library:
+Install python-docx:
 
 ```bash
 pip install python-docx
 ```
 
-That's it!
+## Step 3: Prepare Your Documents
 
-## Step 3: Prepare Your Source Files
-- Mjölnir only accepts .docx files.
-- Place your .docx indexes inside the `/ingest/` directory.
-- Ensure your files are properly formatted and readable.
+Place all your .docx sourcebooks into the /ingest/ directory. Mine are included by default to help you build test data. To be honest, it should work just with that alone.
 
-## Step 4: Initialize the Database
-No action needed! On first run, Mjölnir will automatically create mjolnir.db and load the schema from `/db/schema.sql`.
+Ensure the files are readable and properly structured.
 
-## Ready to Run!
-Run Mjölnir like this:
+## Step 4: Running Mjölnir
+
+Launch the parser:
 
 ```bash
 python mjolnir.py ingest/
 ```
 
-Parsed data will be inserted into the database at `/db/mjolnir.db`.
+Parsed data will be inserted into /db/mjolnir.db.
 
-Logs will be written to `/logs/mjolnir.log`.
+Logs will appear in /logs/mjolnir.log.
 
-## Troubleshooting
-
-If you get a "No module named docx" error:
-- Run `pip install python-docx`
-
-If parsing fails:
-- Check `/logs/mjolnir.log` for error details.
-- Verify your .docx file structure.
-
-✅ Nothing else needed.
 

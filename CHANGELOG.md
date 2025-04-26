@@ -30,47 +30,45 @@ The format is based on [Semantic Versioning](https://semver.org/).
 - `parser/deities_parser.py` — full deity block parsing.
 - `parser/feats_parser.py` — feat name, type, prerequisites, benefits, normal, special, source.
 - `parser/spells_parser.py` — spell school, subschool, level by class, components, effect, range, save, spell resistance.
-- `parser/items_parser.py` — item type, subtype, cost, weight, properties, effects.
-- `parser/races_parser.py` — type, size, speed, ability mods, traits, languages.
+- `parser/items_parser.py` — item type, subtype, cost, weight, effect, properties.
+- `parser/races_parser.py` — race type, subtype, size, speed, ability mods, traits, languages.
 
 ### Improved
-- Upgraded `detector.py` to auto-route `.docx` documents to the correct parser (Deities, Feats, Spells, Items, Races).
-- Modular parser system standardized using `BaseParser`.
+- Upgraded `detector.py` to auto-route `.docx` documents to the correct parser.
+- Standardized modular parser design using `BaseParser`.
 
 ---
 
 ## [0.2.1] — 2025-04-25
 
 ### Changed
-- **Removed** document conversion dependency:
-  - Deleted `/converter/`
-  - Stripped LibreOffice (soffice) dependency.
-  - Mjölnir now **only processes `.docx` files** directly.
-- Simplified `mjolnir.py`:
+- **Removed** document conversion system (no more `.doc` to `.docx` conversions).
+- **Deleted** `/converter/` directory and all LibreOffice dependencies.
+- **Simplified `mjolnir.py`**: 
+  - Direct `.docx` ingestion only.
   - Skips non-`.docx` files automatically.
-  - Faster parsing, fewer dependencies.
-  
+- **Updated README.md**:
+  - Clarified `.docx`-only requirement.
+  - Removed all references to LibreOffice or soffice.
+- **Updated INSTALL.md**:
+  - Clean install guide for pure python-docx installation.
+- **Updated RUN_FIRST.md**:
+  - Reflects direct `.docx` parsing and first-run verification.
+
 ### Added
-- `/ingest/` directory populated with real D&D 3.5e index `.docx` files.
-- `README.md` completed and updated:
-  - Now specifies `.docx`-only ingestion.
-  - Author Info:
-    - Name: David Tofflemire
-    - GitHub: DaveTmire85
-    - Email: davetmire85@gmail.com
-- `INSTALL.md` updated to match `.docx`-only ingestion.
-- `RUN_FIRST.md` created to guide first launch and validation.
+- `/ingest/` folder populated with real D&D 3.5e source indexes in `.docx` format.
+- Full project documentation polished for public GitHub readiness.
 
 ---
 
 ## [Next Planned Release] — 0.3.0
 
 ### Will Add
-- `parser/classes_parser.py` — parser for base and prestige classes (handling level tables, features, prerequisites).
-- `parser/monsters_parser.py` — parser for full D&D statblocks (HD, CR, AC, attacks, special abilities).
-- `parser/templates_parser.py` — parser for templates modifying base creatures (type changes, CR/LA adjustments).
-- Expansion of `detector.py` to recognize Classes, Monsters, and Templates.
-- Enhancements to multi-line and nested block parsing (handling class tables, monster routines, etc.).
+- `parser/classes_parser.py` — for base and prestige classes (level tables, class features, spellcasting).
+- `parser/monsters_parser.py` — for creature statblocks (HD, AC, attacks, abilities).
+- `parser/templates_parser.py` — for template application (adjustments to CR, LA, abilities).
+- `detector.py` expansion to recognize Classes, Monsters, Templates.
+- Advanced multi-line and nested field parsing.
 
 ---
 
@@ -80,7 +78,7 @@ The format is based on [Semantic Versioning](https://semver.org/).
 |:---|:---|:---|
 | 0.1.0 | 2025-04-25 | Core project architecture and launcher created |
 | 0.2.0 | 2025-04-25 | Deities, Feats, Spells, Items, Races parsers completed |
-| 0.2.1 | 2025-04-25 | Conversion code removed, `.docx`-only system finalized, ingest populated |
-| 0.3.0 | Planned | Heavy-duty Class, Monster, and Template parsers |
+| 0.2.1 | 2025-04-25 | Conversion system removed, `.docx`-only setup finalized, documentation rewritten |
+| 0.3.0 | Planned | Heavy-duty Class, Monster, Template parsers to be added |
 
 ---
