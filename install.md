@@ -1,8 +1,6 @@
 # INSTALLATION GUIDE: Project Mjölnir
 
----
-
-## 1. Clone or Copy the Repository
+## Step 1: Clone or Copy the Repository
 
 If cloning via Git:
 
@@ -13,61 +11,42 @@ git clone https://github.com/DaveTmire85/Project_Mjolnir.git
 If manually copying:
 - Ensure full directory structure is preserved.
 
-## 2. Install Python Requirements
-
-Use pip to install the necessary Python library:
+## Step 2: Install Python Dependencies
+Install required Python library:
 
 ```bash
 pip install python-docx
 ```
 
-## 3. Install LibreOffice
+That's it!
 
-LibreOffice is needed for .doc to .docx conversion.
+## Step 3: Prepare Your Source Files
+- Mjölnir only accepts .docx files.
+- Place your .docx indexes inside the `/ingest/` directory.
+- Ensure your files are properly formatted and readable.
 
-Download here: [LibreOffice Download](https://www.libreoffice.org/download/download/)
+## Step 4: Initialize the Database
+No action needed! On first run, Mjölnir will automatically create mjolnir.db and load the schema from `/db/schema.sql`.
 
-Ensure soffice is available in your system PATH.
-
-Test installation:
-
-```bash
-soffice --version
-```
-
-If you see a version number, you're good to go.
-
-## 4. (Optional) Install a SQLite GUI Browser
-
-For inspecting and verifying your database:
-
-[DB Browser for SQLite](https://sqlitebrowser.org/)
-
-Example (on Linux):
+## Ready to Run!
+Run Mjölnir like this:
 
 ```bash
-sudo apt install sqlitebrowser
+python mjolnir.py ingest/
 ```
 
-## 5. Initialize the Database
+Parsed data will be inserted into the database at `/db/mjolnir.db`.
 
-Nothing manual required!
+Logs will be written to `/logs/mjolnir.log`.
 
-On first run, Mjölnir automatically:
-- Creates `/db/mjolnir.db`
-- Initializes the database using `/db/schema.sql`
+## Troubleshooting
 
-## 6. First Run
+If you get a "No module named docx" error:
+- Run `pip install python-docx`
 
-Prepare a test folder with .doc or .docx files.
+If parsing fails:
+- Check `/logs/mjolnir.log` for error details.
+- Verify your .docx file structure.
 
-Run Mjölnir:
-
-```bash
-python mjolnir.py path/to/your/docx/files/
-```
-
-Check:
-- `/db/mjolnir.db` for inserted data
-- `/logs/mjolnir.log` for parsing details
+✅ Nothing else needed.
 
