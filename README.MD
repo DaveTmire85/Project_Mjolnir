@@ -92,13 +92,13 @@ You can view the database easily using tools like DB Browser for SQLite.
 ## Supported Data Types
 
 | Entity Type | Status |
-|-------------|--------|
+|:---|:---|
 | Deities | ✅ Done |
 | Feats | ✅ Done |
 | Spells | ✅ Done |
 | Items | ✅ Done |
 | Races | ✅ Done |
-| Classes (Base/Prestige) | 🔨 In Progress |
+| Classes (Base/Prestige/Variants) | ✅ Done |
 | Monsters (NPCs/Creatures) | 🔨 In Progress |
 | Templates | 🔨 In Progress |
 
