@@ -1,7 +1,6 @@
 import sys
 import os
 from db.db_manager import DBManager
-from utils.doc_converter import convert_doc_to_docx
 from utils.text_cleaner import TextCleaner
 from utils.detector import detect_entity
 from parser.deities_parser import DeitiesParser
@@ -21,8 +20,6 @@ class Mjolnir:
     def run(self, input_path):
         files = self.collect_files(input_path)
         for file in files:
-            if file.endswith(".doc"):
-                file = convert_doc_to_docx(file)
             if not file.endswith(".docx"):
                 continue
 
