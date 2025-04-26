@@ -47,4 +47,3 @@ class FeatsParser(BaseParser):
                 feat['source'] = clean_line.split(":", 1)[-1].strip()
 
         return feat
-s
