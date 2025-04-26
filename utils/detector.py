@@ -8,10 +8,6 @@ from parser.classes_parser import ClassesParser
 
 class EntityTypeDetector:
     def detect_parser(self, file_path):
-        """
-        Analyze the file content to guess what parser should be used.
-        Returns a parser class, or None if unknown.
-        """
         try:
             from docx import Document
             document = Document(file_path)
