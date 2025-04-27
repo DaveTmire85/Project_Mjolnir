@@ -1,20 +1,43 @@
-import docx
+import re
 
-class TextCleaner:
+def clean_text(lines):
+    """
+    Cleans text lines by:
+    - Stripping blank lines
+    - Removing CrystalKeep headers/footers
+    - Removing page numbers
+    - Removing date stamps
+    - Removing known URLs
+    """
+    cleaned_lines = []
 
-    @staticmethod
-    def load_text(file_path):
-        doc = docx.Document(file_path)
-        text = []
-        for para in doc.paragraphs:
-            text.append(para.text)
-        return text
+    for line in lines:
+        line = line.strip()
 
-    @staticmethod
-    def clean_text(text):
-        text = text.replace("‘", "'").replace("’", "'")
-        text = text.replace("“", '"').replace("”", '"')
-        text = text.replace("\u2013", "-").replace("\u2014", "-")
-        text = text.replace("\xa0", " ").replace("–", "-")
-        text = ' '.join(text.split())
-        return text.strip()
+        # Skip empty lines
+        if not line:
+            continue
+
+        lower_line = line.lower()
+
+        # Known CrystalKeep garbage
+        if any(keyword in lower_line for keyword in [
+            "dungeons & dragons 3.5 edition index",
+            "collected by chet erez",
+            "report suggestions or errors",
+            "http://www.crystalkeep.com",
+            "microsoft word",
+        ]):
+            continue
+
+        # Skip page numbers
+        if re.match(r'^page\s+\d+', lower_line):
+            continue
+
+        # Skip dates like "September 4, 2007"
+        if re.match(r'^[a-z]+\s+\d{1,2},\s+\d{4}', lower_line):
+            continue
+
+        cleaned_lines.append(line)
+
+    return cleaned_lines

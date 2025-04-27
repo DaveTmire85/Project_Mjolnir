@@ -1,77 +1,99 @@
-import sys
 import os
-from db.db_manager import DBManager
-from utils.detector_helper import load_text_for_detection
-from utils.detector import detect_entity
-from parser.deities_parser import DeitiesParser
-from parser.feats_parser import FeatsParser
-from parser.spells_parser import SpellsParser
-from parser.items_parser import ItemsParser
-from parser.races_parser import RacesParser
+from utils.text_cleaner import clean_text
+from utils.detector import detect_parser
+from docx import Document
+
 from parser.classes_parser import ClassesParser
-from parser.monsters_parser import MonstersParser
+from parser.feats_parser import FeatsParser
+from parser.races_parser import RacesParser
+from parser.creatures_parser import CreaturesParser
+from parser.equipment_parser import EquipmentParser
+from parser.magic_items_parser import MagicItemsParser
+from parser.skills_parser import SkillsParser
+from parser.combat_actions_parser import CombatActionsParser
 from parser.templates_parser import TemplatesParser
+from parser.deities_parser import DeitiesParser
+from parser.spells_parser import SpellsParser
 
-class Mjolnir:
+FILE_TO_PARSER = {
+    'Classes_Base.docx': 'classes',
+    'Classes_Prestige.docx': 'classes',
+    'Creatures.docx': 'creatures',
+    'Deities.docx': 'deities',
+    'Equipment.docx': 'equipment',
+    'Feats.docx': 'feats',
+    'Magic_Items.docx': 'magic_items',
+    'Races.docx': 'races',
+    'Skills_Actions.docx': 'skills',  # Note: special case if you later split Skills/Actions
+    'Templates.docx': 'templates',
+    'Spell_List.docx': 'spells',
+    'Spells_Sorted.docx': 'spells',
+    'Spell_Descriptions.docx': 'spells'
+}
 
-    def __init__(self):
-        self.db = DBManager()
+def run_ingestion():
+    ingest_folder = 'ingest'
+    files = [os.path.join(ingest_folder, f) for f in os.listdir(ingest_folder) if f.endswith('.docx')]
 
-    def run(self, input_path):
-        files = self.collect_files(input_path)
-        for file in files:
-            if not file.endswith(".docx"):
-                continue
+    spell_files = []
 
-            print(f"[+] Parsing {file}")
-            parser = self.select_parser(file)
-            if not parser:
-                print(f"[!] No suitable parser for {file}")
-                continue
+    for file_path in files:
+        filename = os.path.basename(file_path)
 
-            parsed_data = parser.parse()
-            if parsed_data['records']:
-                self.db.insert(parsed_data['table'], parsed_data['records'])
-            else:
-                print(f"[!] No records parsed from {file}")
+        # First try static mapping
+        parser_type = FILE_TO_PARSER.get(filename)
 
-    def collect_files(self, path):
-        collected = []
-        if os.path.isfile(path):
-            collected.append(path)
+        # If static mapping fails, fallback to detector
+        if not parser_type:
+            document = Document(file_path)
+            raw_lines = [p.text for p in document.paragraphs]
+            cleaned_lines = clean_text(raw_lines)
+            parser_type = detect_parser(cleaned_lines)
+
+        if not parser_type:
+            print(f"[-] Could not detect parser type for {filename}")
+            continue
+
+        if parser_type == 'spells':
+            spell_files.append(file_path)
+            continue
+
+        # Direct hardwired parser dispatch
+        if parser_type == 'classes':
+            parser = ClassesParser()
+        elif parser_type == 'feats':
+            parser = FeatsParser()
+        elif parser_type == 'races':
+            parser = RacesParser()
+        elif parser_type == 'creatures':
+            parser = CreaturesParser()
+        elif parser_type == 'equipment':
+            parser = EquipmentParser()
+        elif parser_type == 'magic_items':
+            parser = MagicItemsParser()
+        elif parser_type == 'skills':
+            parser = SkillsParser()
+        elif parser_type == 'combat_actions':
+            parser = CombatActionsParser()
+        elif parser_type == 'templates':
+            parser = TemplatesParser()
+        elif parser_type == 'deities':
+            parser = DeitiesParser()
         else:
-            for root, dirs, files in os.walk(path):
-                for file in files:
-                    collected.append(os.path.join(root, file))
-        return collected
+            print(f"[-] No parser implemented for {parser_type}")
+            continue
 
-    def select_parser(self, file_path):
-        text_list = load_text_for_detection(file_path)
-        entity = detect_entity(text_list)
+        print(f"[+] Parsing {parser_type} from {filename}")
+        parser.parse(file_path)
 
-        if entity == "deities":
-            return DeitiesParser(file_path)
-        elif entity == "feats":
-            return FeatsParser(file_path)
-        elif entity == "spells":
-            return SpellsParser(file_path)
-        elif entity == "equipment" or entity == "magic_items":
-            return ItemsParser(file_path)
-        elif entity == "races":
-            return RacesParser(file_path)
-        elif entity == "classes":
-            return ClassesParser(file_path)
-        elif entity == "monsters":
-            return MonstersParser(file_path)
-        elif entity == "templates":
-            return TemplatesParser(file_path)
+    # Special case: Spells require 3 files
+    if spell_files:
+        if len(spell_files) == 3:
+            print(f"[+] Parsing spells from {len(spell_files)} files")
+            parser = SpellsParser()
+            parser.parse(spell_files)
         else:
-            return None
+            print(f"[!] Found {len(spell_files)} spell-related files but need exactly 3.")
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python mjolnir.py path_to_docx_or_directory")
-        sys.exit(1)
-
-    mjolnir = Mjolnir()
-    mjolnir.run(sys.argv[1])
+    run_ingestion()

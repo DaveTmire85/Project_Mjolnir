@@ -1,159 +1,94 @@
-from parser.base_parser import BaseParser
-from utils.text_cleaner import TextCleaner
+from utils.text_cleaner import clean_text
+from db.db_manager import insert_entry
+from docx import Document
 
-class SpellsParser(BaseParser):
+class SpellsParser:
+    def __init__(self):
+        self.class_mapping = {}
+        self.sorted_mapping = {}
+        self.description_mapping = {}
 
-    def parse(self):
-        text_list = self.load_text()
-        first_page_text = "\n".join(text_list[:40]).lower()
+    def parse(self, file_paths):
+        spell_list_path, sorted_path, descriptions_path = file_paths
+        
+        self.parse_spell_list(spell_list_path)
+        self.parse_spells_sorted(sorted_path)
+        self.parse_spell_descriptions(descriptions_path)
 
-        if "school:" in first_page_text and "casting time:" in first_page_text:
-            if "components:" in first_page_text:
-                return self.parse_full_descriptions(text_list)
-            else:
-                return self.parse_basic_spells(text_list)
-        elif "0 level" in first_page_text or "1st level" in first_page_text:
-            return self.parse_spells_by_class(text_list)
-        else:
-            print("[!] Could not detect spell format. Skipping.")
-            return {'table': 'unknown', 'records': []}
+        # Merge all data and insert
+        for spell_name in self.description_mapping:
+            spell = self.description_mapping[spell_name]
+            spell['classes'] = self.class_mapping.get(spell_name, {})
+            spell['domains'] = self.sorted_mapping.get(spell_name, {}).get('domains', [])
+            spell['sourcebooks'] = self.sorted_mapping.get(spell_name, {}).get('sources', [])
+            
+            insert_entry('spells', spell)
 
-    def parse_basic_spells(self, text_list):
-        blocks = self.split_blocks(text_list)
-        records = []
-        for block in blocks:
-            spell = self.extract_basic_spell(block)
-            if spell:
-                records.append(spell)
-        return {'table': 'spells', 'records': records}
+    def parse_spell_list(self, file_path):
+        doc = Document(file_path)
+        lines = clean_text([p.text for p in doc.paragraphs])
 
-    def extract_basic_spell(self, block_text):
-        lines = block_text.split("\n")
-        lines = [TextCleaner.clean_text(line) for line in lines if line.strip()]
-
-        if not lines or len(lines) < 4:
-            return None
-
-        spell = {
-            'name': lines[0].strip(),
-            'school': None,
-            'level_by_class': None,
-            'casting_time': None,
-            'range': None,
-            'effect': None,
-            'duration': None,
-            'saving_throw': None,
-            'spell_resistance': None
-        }
-
-        for line in lines[1:]:
-            if "school:" in line.lower():
-                spell['school'] = line.split(":", 1)[-1].strip()
-            elif "level:" in line.lower():
-                spell['level_by_class'] = line.split(":", 1)[-1].strip()
-            elif "casting time:" in line.lower():
-                spell['casting_time'] = line.split(":", 1)[-1].strip()
-            elif "range:" in line.lower():
-                spell['range'] = line.split(":", 1)[-1].strip()
-            elif "effect:" in line.lower() or "area:" in line.lower() or "target:" in line.lower():
-                spell['effect'] = line.split(":", 1)[-1].strip()
-            elif "duration:" in line.lower():
-                spell['duration'] = line.split(":", 1)[-1].strip()
-            elif "saving throw:" in line.lower():
-                spell['saving_throw'] = line.split(":", 1)[-1].strip()
-            elif "spell resistance:" in line.lower():
-                spell['spell_resistance'] = line.split(":", 1)[-1].strip()
-
-        return spell
-
-    def parse_spells_by_class(self, text_list):
-        records = []
         current_class = None
         current_level = None
 
-        for line in text_list:
-            line = TextCleaner.clean_text(line)
-            if not line:
-                continue
+        for line in lines:
+            if "Spell List" in line:
+                current_class = line.split("Spell List")[0].strip()
+            elif "Level" in line:
+                parts = line.split("Level")
+                if len(parts) >= 2:
+                    current_level = parts[0].strip()
+            elif line:
+                spell_name = line.split("(")[0].strip()
+                if spell_name:
+                    if spell_name not in self.class_mapping:
+                        self.class_mapping[spell_name] = {}
+                    self.class_mapping[spell_name][current_class] = current_level
 
-            if "spells" in line.lower() and "level" not in line.lower():
-                current_class = line.replace("Spells", "").strip()
-                continue
+    def parse_spells_sorted(self, file_path):
+        doc = Document(file_path)
+        lines = clean_text([p.text for p in doc.paragraphs])
 
-            if "level" in line.lower():
-                current_level = line.strip()
-                continue
+        for line in lines:
+            if "]" in line and "(" not in line[:10]:
+                # Format: SpellName [ClassLevelInfo]
+                name_part = line.split("[")[0].strip()
+                details_part = line.split("[")[1].split("]")[0].strip()
+                domains = []
+                sources = []
+                
+                if name_part not in self.sorted_mapping:
+                    self.sorted_mapping[name_part] = {}
+                
+                for tag in details_part.split():
+                    if tag.isupper() and len(tag) > 2:
+                        domains.append(tag)
+                    else:
+                        sources.append(tag)
+                
+                self.sorted_mapping[name_part]['domains'] = domains
+                self.sorted_mapping[name_part]['sources'] = sources
 
-            if current_class and current_level and line:
-                records.append({
-                    'class_name': current_class,
-                    'spell_level': current_level,
-                    'spell_name': line.strip()
-                })
+    def parse_spell_descriptions(self, file_path):
+        doc = Document(file_path)
+        lines = clean_text([p.text for p in doc.paragraphs])
 
-        return {'table': 'spells_by_class', 'records': records}
+        current_spell = None
+        for line in lines:
+            if "<" in line and ">" in line:
+                # New spell start
+                if current_spell:
+                    self.description_mapping[current_spell['name']] = current_spell
+                parts = line.split("<")
+                name = parts[0].strip()
+                mechanics = parts[1].split(">")[0].strip()
+                current_spell = {
+                    'name': name,
+                    'mechanics': mechanics,
+                    'description': ""
+                }
+            elif current_spell:
+                current_spell['description'] += line + " "
 
-    def parse_full_descriptions(self, text_list):
-        blocks = self.split_blocks(text_list)
-        records = []
-        for block in blocks:
-            spell = self.extract_full_description(block)
-            if spell:
-                records.append(spell)
-        return {'table': 'spell_descriptions', 'records': records}
-
-    def extract_full_description(self, block_text):
-        lines = block_text.split("\n")
-        lines = [TextCleaner.clean_text(line) for line in lines if line.strip()]
-
-        if not lines or len(lines) < 5:
-            return None
-
-        spell = {
-            'name': lines[0].strip(),
-            'school': None,
-            'components': None,
-            'level_by_class': None,
-            'casting_time': None,
-            'range': None,
-            'effect': None,
-            'duration': None,
-            'saving_throw': None,
-            'spell_resistance': None,
-            'description': None
-        }
-
-        field_mapping = {
-            'school': 'school',
-            'components': 'components',
-            'level': 'level_by_class',
-            'casting time': 'casting_time',
-            'range': 'range',
-            'effect': 'effect',
-            'area': 'effect',
-            'target': 'effect',
-            'duration': 'duration',
-            'saving throw': 'saving_throw',
-            'spell resistance': 'spell_resistance'
-        }
-
-        found_structured_fields = False
-        description_lines = []
-
-        for line in lines[1:]:
-            lower_line = line.lower()
-            matched = False
-            for key, field in field_mapping.items():
-                if lower_line.startswith(f"{key}:"):
-                    spell[field] = line.split(":", 1)[-1].strip()
-                    matched = True
-                    found_structured_fields = True
-                    break
-
-            if not matched and found_structured_fields:
-                description_lines.append(line)
-
-        if description_lines:
-            spell['description'] = " ".join(description_lines)
-
-        return spell
+        if current_spell:
+            self.description_mapping[current_spell['name']] = current_spell

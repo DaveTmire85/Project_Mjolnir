@@ -1,26 +1,28 @@
-from utils.detector_helper import load_text_for_detection
+from utils.detector_helper import contains_keywords
 
-def detect_entity(text_list):
-    # Scan the first 200 lines (paragraphs + table cells)
-    scan_text = "\n".join(text_list[:200]).lower()
+def detect_parser(text_lines):
+    """
+    Given a list of text lines, returns the parser type as a string.
+    """
 
-    if "pantheon:" in scan_text and "domains:" in scan_text:
-        return "deities"
-    elif "prerequisite:" in scan_text and "benefit:" in scan_text:
-        return "feats"
-    elif "school:" in scan_text and "casting time:" in scan_text:
-        return "spells"
-    elif "damage:" in scan_text and ("armor bonus:" in scan_text or "critical:" in scan_text):
-        return "equipment"
-    elif "aura:" in scan_text and "caster level:" in scan_text and "slot:" in scan_text:
-        return "magic_items"
-    elif "type:" in scan_text and "size:" in scan_text and "abilities:" in scan_text:
-        return "races"
-    elif "hit die:" in scan_text and "class skills" in scan_text:
-        return "classes"
-    elif "hit dice:" in scan_text and "initiative:" in scan_text and "armor class:" in scan_text:
-        return "monsters"
-    elif "level adjustment:" in scan_text and "challenge rating:" in scan_text:
-        return "templates"
-    else:
-        return "unknown"
+    joined_text = " ".join(text_lines).lower()
+
+    detection_map = {
+        'classes': ['hit die', 'class features', 'alignment'],
+        'feats': ['prerequisite', 'benefit', 'feat type'],
+        'races': ['ability modifiers', 'favored class', 'movement'],
+        'creatures': ['mounts', 'companions', 'trainable creatures'],
+        'equipment': ['armor bonus', 'armor check penalty', 'arcane spell failure'],
+        'magic_items': ['aura', 'caster level', 'requirements', 'gp cost'],
+        'skills': ['trained only', 'armor check penalty', 'synergy'],
+        'combat_actions': ['opposed rolls', 'special modifiers'],
+        'templates': ['template', 'level adjustment', 'challenge rating'],
+        'deities': ['pantheon', 'domains', 'favored weapon'],
+        'spells': ['spell descriptions', 'casting time', 'saving throw']
+    }
+
+    for parser_type, keywords in detection_map.items():
+        if contains_keywords(joined_text, keywords):
+            return parser_type
+
+    return None

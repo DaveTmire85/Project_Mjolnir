@@ -1,121 +1,161 @@
--- Create tables for Project Mjolnir (D&D 3.5e Parser)
+-- Project Mjölnir: Full Database Schema (v2.1.0)
 
-PRAGMA foreign_keys = ON;
-
-CREATE TABLE IF NOT EXISTS deities (
+-- ==========================
+-- DEITIES
+-- ==========================
+CREATE TABLE deities (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    source TEXT,
+    name TEXT,
+    reference TEXT,
     pantheon TEXT,
     alignment TEXT,
+    rank TEXT,
+    nickname_portfolio TEXT,
     domains TEXT,
     favored_weapon TEXT,
     symbol TEXT
 );
 
-CREATE TABLE IF NOT EXISTS feats (
+-- ==========================
+-- FEATS
+-- ==========================
+CREATE TABLE feats (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
+    name TEXT,
     type TEXT,
-    prerequisites TEXT,
+    prerequisite TEXT,
     benefit TEXT,
-    normal TEXT,
-    special TEXT,
     source TEXT
 );
 
-CREATE TABLE IF NOT EXISTS spells (
+-- ==========================
+-- CLASSES (Base and Prestige)
+-- ==========================
+CREATE TABLE classes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
+    name TEXT,
+    hit_die TEXT,
+    alignment TEXT,
+    skill_points TEXT,
+    class_skills TEXT,
+    weapon_armor_proficiencies TEXT,
+    class_features TEXT
+);
+
+-- ==========================
+-- RACES
+-- ==========================
+CREATE TABLE races (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    ability_modifiers TEXT,
+    favored_class TEXT,
+    size TEXT,
+    movement TEXT,
+    vision TEXT,
+    level_adjustment TEXT,
+    features TEXT
+);
+
+-- ==========================
+-- CREATURES (Mounts, Familiars, Companions)
+-- ==========================
+CREATE TABLE creatures (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    type TEXT,
+    size TEXT,
+    hit_dice TEXT,
+    alignment TEXT,
+    special_traits TEXT
+);
+
+-- ==========================
+-- EQUIPMENT (Armor and Shields)
+-- ==========================
+CREATE TABLE equipment (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    armor_bonus TEXT,
+    max_dex_bonus TEXT,
+    armor_check_penalty TEXT,
+    arcane_spell_failure TEXT,
+    cost TEXT,
+    weight TEXT
+);
+
+-- ==========================
+-- MAGIC ITEMS
+-- ==========================
+CREATE TABLE magic_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    aura TEXT,
+    caster_level TEXT,
+    requirements TEXT,
+    cost TEXT,
+    weight TEXT
+);
+
+-- ==========================
+-- SKILLS
+-- ==========================
+CREATE TABLE skills (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    ability TEXT,
+    trained_only TEXT,
+    armor_check_penalty TEXT,
+    synergy TEXT,
+    special TEXT
+);
+
+-- ==========================
+-- COMBAT ACTIONS
+-- ==========================
+CREATE TABLE combat_actions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    attack_roll TEXT,
+    steps TEXT,
+    feats_affecting TEXT,
+    special_modifiers TEXT
+);
+
+-- ==========================
+-- TEMPLATES
+-- ==========================
+CREATE TABLE templates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    source TEXT,
+    creature_type_change TEXT,
+    natural_armor_bonus TEXT,
+    ability_changes TEXT,
+    level_adjustment TEXT,
+    challenge_rating_change TEXT,
+    immunities TEXT
+);
+
+-- ==========================
+-- SPELLS
+-- ==========================
+CREATE TABLE spells (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    classes TEXT,
+    domains TEXT,
+    sourcebooks TEXT,
     school TEXT,
     subschool TEXT,
     descriptors TEXT,
-    level_by_class TEXT,
     components TEXT,
     casting_time TEXT,
     range TEXT,
-    effect TEXT,
+    target TEXT,
     duration TEXT,
     saving_throw TEXT,
     spell_resistance TEXT,
-    source TEXT
-);
-
-CREATE TABLE IF NOT EXISTS items (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    type TEXT,
-    subtype TEXT,
-    cost TEXT,
-    weight TEXT,
-    properties TEXT,
-    effect TEXT,
-    source TEXT
-);
-
-CREATE TABLE IF NOT EXISTS races (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    type TEXT,
-    subtype TEXT,
-    size TEXT,
-    speed TEXT,
-    ability_mods TEXT,
-    traits TEXT,
-    languages TEXT,
-    source TEXT
-);
-
-CREATE TABLE IF NOT EXISTS classes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    hit_die TEXT,
-    bab_progression TEXT,
-    saves TEXT,
-    skill_points_per_level INTEGER,
-    spellcasting TEXT,
-    features TEXT,
-    prerequisites TEXT,
-    is_prestige INTEGER,
-    source TEXT
-);
-
-CREATE TABLE IF NOT EXISTS monsters (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    type TEXT,
-    subtype TEXT,
-    size TEXT,
-    hit_dice TEXT,
-    initiative TEXT,
-    speed TEXT,
-    armor_class TEXT,
-    base_attack_bonus TEXT,
-    grapple_bonus TEXT,
-    attack_routine TEXT,
-    full_attack TEXT,
-    special_attacks TEXT,
-    special_qualities TEXT,
-    saves TEXT,
-    abilities TEXT,
-    environment TEXT,
-    organization TEXT,
-    challenge_rating TEXT,
-    treasure TEXT,
-    alignment TEXT,
-    advancement TEXT,
-    level_adjustment TEXT,
-    source TEXT
-);
-
-CREATE TABLE IF NOT EXISTS templates (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
     description TEXT,
-    adjustments TEXT,
-    prerequisites TEXT,
-    type_change TEXT,
-    la_adjustment TEXT,
-    cr_adjustment TEXT,
-    source TEXT
+    special_requirements TEXT
 );

@@ -1,24 +1,13 @@
-import docx
+def contains_keywords(text, keywords):
+    """
+    Checks if all keywords exist somewhere in the text.
+    """
+    text = text.lower()
+    return all(keyword.lower() in text for keyword in keywords)
 
-def load_text_for_detection(file_path):
+def quick_contains(text, keywords):
     """
-    Extracts all text content from a .docx file.
-    
-    Args:
-        file_path (str): Path to the .docx file
-        
-    Returns:
-        list: All text content from paragraphs and tables
-        
-    Raises:
-        FileNotFoundError: If the file doesn't exist
+    Checks if ANY keyword exists in the text (not all required).
     """
-    doc = docx.Document(file_path)
-    text = []
-    for para in doc.paragraphs:
-        text.append(para.text)
-    for table in doc.tables:
-        for row in table.rows:
-            for cell in row.cells:
-                text.append(cell.text)
-    return text
+    text = text.lower()
+    return any(keyword.lower() in text for keyword in keywords)

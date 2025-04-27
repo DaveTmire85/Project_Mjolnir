@@ -1,58 +1,34 @@
-from parser.base_parser import BaseParser
-from utils.text_cleaner import TextCleaner
+from utils.text_cleaner import clean_text
+from db.db_manager import insert_entry
 
-class FeatsParser(BaseParser):
-
-    FIELD_KEYWORDS = {
-        'prerequisites': 'Prerequisite:',
-        'benefit': 'Benefit:',
-        'normal': 'Normal:',
-        'special': 'Special:'
-    }
-
-    def parse(self):
-        text_list = self.load_text()
-        blocks = self.split_blocks(text_list)
-
-        for block in blocks:
-            feat = self.extract_feat(block)
-            if feat:
-                self.data.append(feat)
-
-        return {'table': 'feats', 'records': self.data}
-
-    def extract_feat(self, block_text):
-        lines = block_text.split("\n")
-        lines = [TextCleaner.clean_text(line) for line in lines if line.strip()]
-
-        if not lines:
-            return None
-
-        # Extract Name + Type from first line
-        first_line = lines[0]
-        if "[" in first_line and "]" in first_line:
-            name_part, type_part = first_line.split("[", 1)
-            name = name_part.strip()
-            feat_type = type_part.replace("]", "").strip()
-        else:
-            name = first_line.strip()
-            feat_type = None
-
-        feat = {
-            'name': name,
-            'type': feat_type,
-            'prerequisites': None,
-            'benefit': None,
-            'normal': None,
-            'special': None,
-            'source': None
-        }
-
-        for line in lines[1:]:
-            for key, keyword in self.FIELD_KEYWORDS.items():
-                if line.lower().startswith(keyword.lower()):
-                    value = line.split(":", 1)[-1].strip()
-                    feat[key] = value
-                    break
-
-        return feat
+class FeatsParser:
+    def parse(self, file_path):
+        from docx import Document
+        
+        doc = Document(file_path)
+        raw_lines = [p.text for p in doc.paragraphs]
+        lines = clean_text(raw_lines)
+        
+        feats = []
+        current_feat = {}
+        
+        for line in lines:
+            if line.startswith("[") and "]" in line:
+                if current_feat:
+                    feats.append(current_feat)
+                    current_feat = {}
+                parts = line.split("]")
+                current_feat['type'] = parts[0][1:].strip()
+                current_feat['name'] = parts[1].strip()
+            elif "Prerequisite" in line:
+                current_feat['prerequisite'] = line.split(":")[1].strip()
+            elif "Benefit" in line:
+                current_feat['benefit'] = line.split(":")[1].strip()
+            elif "Source" in line:
+                current_feat['source'] = line.split(":")[1].strip()
+        
+        if current_feat:
+            feats.append(current_feat)
+        
+        for entry in feats:
+            insert_entry('feats', entry)

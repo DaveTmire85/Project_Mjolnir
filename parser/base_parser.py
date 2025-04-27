@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from docx import Document
+from utils.text_cleaner import clean_text
 
 class BaseParser(ABC):
     def __init__(self, file_path):
@@ -7,16 +9,20 @@ class BaseParser(ABC):
 
     @abstractmethod
     def parse(self):
+        """
+        Must be implemented by all child parsers.
+        Handles parsing and preparing data for database insertion.
+        """
         pass
 
     def load_text(self):
-        from docx import Document
+        """
+        Loads and cleans text from a .docx file.
+        Removes header/footer junk, normalizes lines.
+        """
         document = Document(self.file_path)
-        full_text = []
-        for para in document.paragraphs:
-            if para.text.strip():
-                full_text.append(para.text.strip())
-        return full_text
+        raw_lines = [p.text for p in document.paragraphs]
+        return clean_text(raw_lines)
 
     def split_blocks(self, text_list):
         """

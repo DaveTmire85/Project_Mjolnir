@@ -1,38 +1,54 @@
-from parser.base_parser import BaseParser
-from utils.text_cleaner import TextCleaner
-import docx
+from utils.text_cleaner import clean_text
+from db.db_manager import insert_entry
+from docx import Document
 
-class DeitiesParser(BaseParser):
+class DeitiesParser:
+    def parse(self, file_path):
+        doc = Document(file_path)
+        raw_lines = [p.text for p in doc.paragraphs]
+        lines = clean_text(raw_lines)
 
-    def parse(self):
-        records = []
-        doc = docx.Document(self.file_path)
+        deities = []
+        for line in lines:
+            if line.strip() and "(" in line and ")" in line:
+                parts = line.split()
+                name = parts[0]
+                reference = parts[1].strip("()")
+                pantheon = parts[2]
+                alignment = parts[3]
+                rank = parts[4]
+                nickname_portfolio = " ".join(parts[5:])
 
-        for table in doc.tables:
-            for row in table.rows:
-                cells = [TextCleaner.clean_text(cell.text) for cell in row.cells]
-                
-                # Safety: Skip header rows (look for keyword "Pantheon" or "Align" or similar)
-                if len(cells) >= 9 and cells[2].lower() != "pantheon" and cells[3].lower() != "align":
-                    deity = self.extract_deity_from_cells(cells)
-                    if deity:
-                        records.append(deity)
+                deity = {
+                    'name': name,
+                    'reference': reference,
+                    'pantheon': pantheon,
+                    'alignment': alignment,
+                    'rank': rank,
+                    'nickname_portfolio': nickname_portfolio,
+                    'domains': '',
+                    'favored_weapon': '',
+                    'symbol': ''
+                }
 
-        return {'table': 'deities', 'records': records}
+                deities.append(deity)
 
-    def extract_deity_from_cells(self, cells):
-        try:
-            deity = {
-                'name': cells[0],
-                'source': cells[1],
-                'pantheon': cells[2],
-                'alignment': cells[3],
-                'rank': cells[4],
-                'portfolio': cells[5],
-                'domains': cells[6],
-                'favored_weapon': cells[7],
-                'symbol': cells[8]
-            }
-            return deity
-        except IndexError:
-            return None
+        # Now second pass to fill domains, weapon, symbol
+        # (Assuming the fields follow right after the basic entry in cleaned lines)
+
+        for i, deity in enumerate(deities):
+            j = i * 3 + 1  # assuming rough line offsets
+            if j < len(lines):
+                domains_line = lines[j]
+                weapon_symbol_line = lines[j+1] if (j+1) < len(lines) else ""
+
+                if domains_line:
+                    deity['domains'] = domains_line.replace(",", ", ").strip()
+
+                if weapon_symbol_line:
+                    split = weapon_symbol_line.split()
+                    deity['favored_weapon'] = split[0] if split else ''
+                    deity['symbol'] = " ".join(split[1:]) if len(split) > 1 else ''
+
+        for entry in deities:
+            insert_entry('deities', entry)

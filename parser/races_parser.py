@@ -1,53 +1,42 @@
-from parser.base_parser import BaseParser
-from utils.text_cleaner import TextCleaner
+from utils.text_cleaner import clean_text
+from db.db_manager import insert_entry
 
-class RacesParser(BaseParser):
+class RacesParser:
+    def parse(self, file_path):
+        from docx import Document
+        
+        doc = Document(file_path)
+        raw_lines = [p.text for p in doc.paragraphs]
+        lines = clean_text(raw_lines)
 
-    FIELD_KEYWORDS = {
-        'type': 'Type:',
-        'size': 'Size:',
-        'speed': 'Speed:',
-        'abilities': 'Abilities:',
-        'languages': 'Languages:',
-        'favored_class': 'Favored Class:',
-        'level_adjustment': 'Level Adjustment:'
-    }
+        races = []
+        current_race = {}
 
-    def parse(self):
-        text_list = self.load_text()
-        blocks = self.split_blocks(text_list)
+        for line in lines:
+            if line.startswith("Race:"):
+                if current_race:
+                    races.append(current_race)
+                    current_race = {}
+                current_race['name'] = line.replace("Race:", "").strip()
+            elif "Ability Modifiers" in line:
+                current_race['ability_modifiers'] = line.split(":")[1].strip()
+            elif "Favored Class" in line:
+                current_race['favored_class'] = line.split(":")[1].strip()
+            elif "Size" in line:
+                current_race['size'] = line.split(":")[1].strip()
+            elif "Movement" in line:
+                current_race['movement'] = line.split(":")[1].strip()
+            elif "Vision" in line:
+                current_race['vision'] = line.split(":")[1].strip()
+            elif "Level Adjustment" in line:
+                current_race['level_adjustment'] = line.split(":")[1].strip()
+            elif "Features" in line:
+                current_race['features'] = []
+            elif current_race.get('features') is not None:
+                current_race['features'].append(line.strip())
 
-        for block in blocks:
-            race = self.extract_race(block)
-            if race:
-                self.data.append(race)
+        if current_race:
+            races.append(current_race)
 
-        return {'table': 'races', 'records': self.data}
-
-    def extract_race(self, block_text):
-        lines = block_text.split("\n")
-        lines = [TextCleaner.clean_text(line) for line in lines if line.strip()]
-
-        if not lines:
-            return None
-
-        race = {
-            'name': lines[0].strip(),
-            'type': None,
-            'size': None,
-            'speed': None,
-            'abilities': None,
-            'languages': None,
-            'favored_class': None,
-            'level_adjustment': None,
-            'source': None
-        }
-
-        for line in lines[1:]:
-            for key, keyword in self.FIELD_KEYWORDS.items():
-                if line.lower().startswith(keyword.lower()):
-                    value = line.split(":", 1)[-1].strip()
-                    race[key] = value
-                    break
-
-        return race
+        for entry in races:
+            insert_entry('races', entry)
